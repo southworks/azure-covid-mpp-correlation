@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "DATALAKE": "DefaultEndpointsProtocol=https;AccountName=<storagename>;AccountKey=<storagedatalakeaccountkey>;EndpointSuffix=core.windows.net",
+    "CONSUMER_API_KEY": "<your-api-key>",
+    "CONSUMER_API_SECRET": "<your-api-secret>"
+  }
+}

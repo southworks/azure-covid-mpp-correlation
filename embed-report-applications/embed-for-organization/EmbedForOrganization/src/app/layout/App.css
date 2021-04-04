@@ -1,0 +1,135 @@
+:root {
+    --color-background: #FCEAE1;
+    --color-main: #13322D;
+    --color-text-title: #FE4E01;
+}
+body {
+    background-color: var(--color-background);
+    margin: 0px;
+    padding: 0px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.MuiAppBar-root{
+    /*display: none !important;*/
+}
+iframe {
+    border: none;
+}
+
+ul {
+    padding: 0;
+}
+
+.app {
+    background-color: var(--color-background);
+    text-align: center;
+}
+
+.header_bar {
+    width: 100%;
+    height: 50px;
+}
+
+.report {
+    margin-top: 26px;
+    padding-bottom: calc(100% * 9 / 16);
+    position: relative;
+}
+
+.report > iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.report_title {
+    height: 5%;
+    padding-left: 10px;
+    font-weight: bold;
+    font-size: large;
+    color: var(--color-text-title);
+    margin-bottom: 1%;
+}
+
+.report_frame {
+    width: 90%;
+    padding: 5px;
+    margin: 2% auto;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.report_description {
+    height: 14%;
+    color: var(--color-background);
+    margin: 1%;
+}
+
+.navigation_item {
+    background-color: var(--color-main);
+    border-radius: 5px;
+
+    padding: 5px;
+
+    display: inline-block;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.navigation_item_title {
+    color: var(--color-text-title);
+}
+
+.navigation_item_title_selected {
+    color: var(--color-background);
+}
+
+.makeStyles-blue-23 {
+    background-color: var(--color-text-title) !important;
+}
+
+.makeStyles-background-13 {
+    background-color: var(--color-main);
+}
+
+.makeStyles-background-13:after  {
+    background: #00000050 !important;
+}
+
+.makeStyles-cardIcon-75.makeStyles-warningCardHeader-76 {
+    color: var(--color-background);
+    font-weight: 600;
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+    /* CSS */
+
+    .app {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .report_frame {
+        width: 90%;
+        height: auto;
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+
+
+}
+
+@media (min-width: 320px) and (max-width: 480px) {
+    /* CSS */
+    .app {
+        display: flex;
+        flex-direction: column;
+    }
+    .report_frame {
+        width: 90%;
+        height: auto;
+        margin-left: 5%;
+        margin-right: 5%;
+    }
+}

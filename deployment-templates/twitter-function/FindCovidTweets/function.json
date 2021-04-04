@@ -1,0 +1,12 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "authLevel": "function",
+      "name": "dailytrigger",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "0 0 3 * * *"
+    }
+  ]
+}

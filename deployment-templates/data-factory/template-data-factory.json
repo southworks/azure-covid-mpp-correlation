@@ -1,0 +1,2603 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "<your-data-factory-name>"
+        },
+        "AzureDataLake_accountKey": {
+            "type": "secureString",
+            "metadata": "Secure string for 'accountKey' of 'AzureDataLake'"
+        },
+        "DataLakeStorage_accountKey": {
+            "type": "secureString",
+            "metadata": "<your-datalake-storage-account-key>"
+        },
+        "TwitterDataRaw_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'TwitterDataRaw' storage"
+        },
+        "AzureDataLake_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://<your-datalake-storage>.dfs.core.windows.net"
+        },
+        "RestService1_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://api.covid19api.com/summary"
+        },
+        "DataLakeStorage_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://<your-datalake-storage>.dfs.core.windows.net"
+        },
+        "OpenSkyArrivalsLiveAPI_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "<your-opensky-base-url-with-key>/api/flights/arrival?airport=@{linkedService().airport}&begin=@{div(sub(ticks(getPastTime(3,'Day')),ticks('1970-01-01Z00:00:00')),10000000)}&end=@{div(sub(ticks(utcNow()),ticks('1970-01-01Z00:00:00')),10000000)}"
+        },
+        "Mobility_API_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://traffic.ls.hereapi.com/traffic/6.2/flow.json?bbox=@{linkedService().bbox}&apiKey=<your-api-key>"
+        },
+        "CovidHistoryData_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://pandemicdatalake.blob.core.windows.net/public/curated/covid-19/ecdc_cases/latest/ecdc_cases.json"
+        },
+        "COVID19_Summary_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://api.covid19api.com/summary"
+        },
+        "WeatherBitCurrentSource_properties_typeProperties_url": {
+            "type": "string",
+            "defaultValue": "https://api.weatherbit.io/v2.0/current?city_id=@{linkedService().city_id}&key=<your-api-key>"
+        },
+        "TwitterDataUploaded_properties_pip-twitterData_parameters_FileName": {
+            "type": "string",
+            "defaultValue": "@trigger().outputs.body.fileName"
+        },
+        "TwitterDataUploaded_properties_typeProperties_scope": {
+            "type": "string",
+            "defaultValue": "<storage account id>"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/AzureDataLake')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobFS",
+                "typeProperties": {
+                    "url": "[parameters('AzureDataLake_properties_typeProperties_url')]",
+                    "accountKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('AzureDataLake_accountKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/RestService1')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('RestService1_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/DataLakeStorage')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobFS",
+                "typeProperties": {
+                    "url": "[parameters('DataLakeStorage_properties_typeProperties_url')]",
+                    "accountKey": {
+                        "type": "SecureString",
+                        "value": "[parameters('DataLakeStorage_accountKey')]"
+                    }
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OpenSkyArrivalsLiveAPI')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "parameters": {
+                    "airport": {
+                        "type": "string",
+                        "defaultValue": "EGVN"
+                    }
+                },
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('OpenSkyArrivalsLiveAPI_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": false,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Mobility_API')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "parameters": {
+                    "bbox": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('Mobility_API_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CovidHistoryData')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('CovidHistoryData_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": false,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/COVID19_Summary')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('COVID19_Summary_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/WeatherBitCurrentSource')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "parameters": {
+                    "city_id": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "RestService",
+                "typeProperties": {
+                    "url": "[parameters('WeatherBitCurrentSource_properties_typeProperties_url')]",
+                    "enableServerCertificateValidation": true,
+                    "authenticationType": "Anonymous"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/TwitterDataRaw')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureBlobStorage",
+                "typeProperties": {
+                    "connectionString": "[parameters('TwitterDataRaw_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/MobilityNormalizeFlow')]",
+            "type": "Microsoft.DataFactory/factories/dataflows",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "type": "MappingDataFlow",
+                "typeProperties": {
+                    "sources": [
+                        {
+                            "dataset": {
+                                "referenceName": "SourceMobilityJSON",
+                                "type": "DatasetReference"
+                            },
+                            "name": "mobilitysource"
+                        }
+                    ],
+                    "sinks": [
+                        {
+                            "dataset": {
+                                "referenceName": "OutputMobilityCSV",
+                                "type": "DatasetReference"
+                            },
+                            "name": "mobilitydestination"
+                        }
+                    ],
+                    "transformations": [
+                        {
+                            "name": "FlattenNormalize"
+                        }
+                    ],
+                    "script": "source(output(\n\t\tRWS as (RW as (FIS as (FI as (TMC as (PC as string, DE as string, QD as string, LE as double), CF as (TY as string, SP as double, SU as double, FF as double, JF as double, CN as double)[])[])[], mid as string, LI as string, DE as string, PBT as string)[], TY as string, MAP_VERSION as string, EBU_COUNTRY_CODE as string, EXTENDED_COUNTRY_CODE as string, TABLE_ID as string, UNITS as string)[],\n\t\tMAP_VERSION as string,\n\t\tCREATED_TIMESTAMP as string,\n\t\tVERSION as string,\n\t\tUNITS as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tdocumentForm: 'documentPerLine') ~> mobilitysource\nmobilitysource foldDown(unroll(RWS.RW.FIS.FI.CF),\n\tmapColumn(\n\t\tmid = RWS.RW.mid,\n\t\tJF = RWS.RW.FIS.FI.CF.JF,\n\t\tEBU_COUNTRY_CODE = RWS.EBU_COUNTRY_CODE,\n\t\tEXTENDED_COUNTRY_CODE = RWS.EXTENDED_COUNTRY_CODE,\n\t\tCREATED_TIMESTAMP\n\t),\n\tskipDuplicateMapInputs: false,\n\tskipDuplicateMapOutputs: false) ~> FlattenNormalize\nFlattenNormalize sink(input(\n\t\tColumn_1 as string,\n\t\tColumn_2 as string,\n\t\tColumn_3 as string,\n\t\tColumn_4 as string,\n\t\tColumn_5 as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tmapColumn(\n\t\tmid,\n\t\tJF,\n\t\tEBU_COUNTRY_CODE,\n\t\tEXTENDED_COUNTRY_CODE,\n\t\tCREATED_TIMESTAMP\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> mobilitydestination"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceMobilityJSON')]",
+                "[concat(variables('factoryId'), '/datasets/OutputMobilityCSV')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-copyAirportData')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "AirportCopy",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "RestSource",
+                                "httpRequestTimeout": "00:01:40",
+                                "requestInterval": "00.00:00:00.010",
+                                "requestMethod": "GET"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "path": "$['icao24']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 1
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['firstSeen']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 2
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estDepartureAirport']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 3
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['lastSeen']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 4
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estArrivalAirport']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 5
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['callsign']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 6
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estDepartureAirportHorizDistance']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 7
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estDepartureAirportVertDistance']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 8
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estArrivalAirportHorizDistance']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 9
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['estArrivalAirportVertDistance']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 10
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['departureAirportCandidatesCount']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 11
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['arrivalAirportCandidatesCount']"
+                                        },
+                                        "sink": {
+                                            "ordinal": 12
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceArrivalsData",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "OutputAirportArrivalsCSV",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Wait1",
+                        "type": "Wait",
+                        "dependsOn": [
+                            {
+                                "activity": "AirportCopy",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "waitTimeInSeconds": 1
+                        }
+                    },
+                    {
+                        "name": "WaitError",
+                        "type": "Wait",
+                        "dependsOn": [
+                            {
+                                "activity": "AirportCopy",
+                                "dependencyConditions": [
+                                    "Failed"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "waitTimeInSeconds": 1
+                        }
+                    }
+                ],
+                "parameters": {
+                    "icao": {
+                        "type": "string",
+                        "defaultValue": "@pipeline().parameters.icao"
+                    }
+                },
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T18:01:08Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceArrivalsData')]",
+                "[concat(variables('factoryId'), '/datasets/OutputAirportArrivalsCSV')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-copyBBoxData')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "BBoxCopy",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "RestSource",
+                                "httpRequestTimeout": "00:01:40",
+                                "requestInterval": "00.00:00:00.010",
+                                "requestMethod": "GET"
+                            },
+                            "sink": {
+                                "type": "JsonSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "JsonWriteSettings"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceMobilityData",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "OutputMobilityJSON",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "city": {
+                                        "value": "@pipeline().parameters.city",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "name": "MobilityJsonToCsv",
+                        "type": "ExecuteDataFlow",
+                        "dependsOn": [
+                            {
+                                "activity": "BBoxCopy",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "dataflow": {
+                                "referenceName": "MobilityNormalizeFlow",
+                                "type": "DataFlowReference",
+                                "parameters": {},
+                                "datasetParameters": {
+                                    "mobilitysource": {},
+                                    "mobilitydestination": {}
+                                }
+                            },
+                            "staging": {},
+                            "compute": {
+                                "coreCount": 8,
+                                "computeType": "General"
+                            },
+                            "traceLevel": "Fine"
+                        }
+                    }
+                ],
+                "parameters": {
+                    "bbox": {
+                        "type": "string",
+                        "defaultValue": "@pipeline().parameters.city"
+                    },
+                    "city": {
+                        "type": "string",
+                        "defaultValue": "@pipeline().parameters.bbox"
+                    }
+                },
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T20:58:17Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceMobilityData')]",
+                "[concat(variables('factoryId'), '/datasets/OutputMobilityJSON')]",
+                "[concat(variables('factoryId'), '/dataflows/MobilityNormalizeFlow')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-flightData')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "AirportsLookup",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "JsonSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": false
+                                },
+                                "formatSettings": {
+                                    "type": "JsonReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "ListAirportsJSON",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachAirports",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "AirportsLookup",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('AirportsLookup').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "Execute Pipeline1",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pip-copyAirportData",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "icao": {
+                                                "value": "@item().ICAO",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T19:26:30Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ListAirportsJSON')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-copyAirportData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-currentWeather')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "LookupCities",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "ListWeatherCities",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachCities",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "LookupCities",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('LookupCities').output.value",
+                                "type": "Expression"
+                            },
+                            "activities": [
+                                {
+                                    "name": "Wait1",
+                                    "type": "Wait",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "waitTimeInSeconds": 1
+                                    }
+                                },
+                                {
+                                    "name": "Execute Pipeline Weather",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [
+                                        {
+                                            "activity": "Wait1",
+                                            "dependencyConditions": [
+                                                "Succeeded"
+                                            ]
+                                        }
+                                    ],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pip-copyCurrentWeather",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "city_id": {
+                                                "value": "@item().city_id",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-11T15:57:11Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ListWeatherCities')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-copyCurrentWeather')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-mobilityEurope')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "BBoxLookup",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "JsonSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": false
+                                },
+                                "formatSettings": {
+                                    "type": "JsonReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "ListEuropeJson",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachBbox",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "BBoxLookup",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('BBoxLookup').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "CopyBBoxData",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pip-copyBBoxData",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "bbox": {
+                                                "value": "@item().BBox",
+                                                "type": "Expression"
+                                            },
+                                            "city": {
+                                                "value": "@item().City",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T20:58:18Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ListEuropeJson')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-copyBBoxData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-mobilityWest')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "BBoxLookup",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "JsonSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": false
+                                },
+                                "formatSettings": {
+                                    "type": "JsonReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "ListWestJSON",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachBbox",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "BBoxLookup",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('BBoxLookup').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "CopyBBoxData",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pip-copyBBoxData",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "bbox": {
+                                                "value": "@item().BBox",
+                                                "type": "Expression"
+                                            },
+                                            "city": {
+                                                "value": "@item().City",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T20:58:18Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ListWestJSON')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-copyBBoxData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-mobilityEast')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "BBoxLookup",
+                        "type": "Lookup",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "JsonSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSReadSettings",
+                                    "recursive": false
+                                },
+                                "formatSettings": {
+                                    "type": "JsonReadSettings"
+                                }
+                            },
+                            "dataset": {
+                                "referenceName": "ListEastJSON",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            },
+                            "firstRowOnly": false
+                        }
+                    },
+                    {
+                        "name": "ForEachBbox",
+                        "type": "ForEach",
+                        "dependsOn": [
+                            {
+                                "activity": "BBoxLookup",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "userProperties": [],
+                        "typeProperties": {
+                            "items": {
+                                "value": "@activity('BBoxLookup').output.value",
+                                "type": "Expression"
+                            },
+                            "isSequential": true,
+                            "activities": [
+                                {
+                                    "name": "CopyBBoxData",
+                                    "type": "ExecutePipeline",
+                                    "dependsOn": [],
+                                    "userProperties": [],
+                                    "typeProperties": {
+                                        "pipeline": {
+                                            "referenceName": "pip-copyBBoxData",
+                                            "type": "PipelineReference"
+                                        },
+                                        "waitOnCompletion": true,
+                                        "parameters": {
+                                            "bbox": {
+                                                "value": "@item().BBox",
+                                                "type": "Expression"
+                                            },
+                                            "city": {
+                                                "value": "@item().City",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-10T20:58:18Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/ListEastJSON')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-copyBBoxData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-copyCovid19')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "CopyCovidToStorage",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "RestSource",
+                                "httpRequestTimeout": "00:01:40",
+                                "requestInterval": "00.00:00:00.010",
+                                "requestMethod": "GET"
+                            },
+                            "sink": {
+                                "type": "JsonSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "JsonWriteSettings"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceCovidSummaryData",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "OutputCovidSummaryData",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Copy CopyCovidHistoryToStorage",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "RestSource",
+                                "httpRequestTimeout": "00:01:40",
+                                "requestInterval": "00.00:00:00.010",
+                                "requestMethod": "GET"
+                            },
+                            "sink": {
+                                "type": "JsonSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "JsonWriteSettings",
+                                    "filePattern": "arrayOfObjects"
+                                }
+                            },
+                            "enableStaging": false
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceCovidHistoryData",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "InputCovidHistoryJSON",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    }
+                ],
+                "annotations": [],
+                "lastPublishTime": "2020-12-11T15:09:01Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceCovidSummaryData')]",
+                "[concat(variables('factoryId'), '/datasets/OutputCovidSummaryData')]",
+                "[concat(variables('factoryId'), '/datasets/SourceCovidHistoryData')]",
+                "[concat(variables('factoryId'), '/datasets/InputCovidHistoryJSON')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-copyCurrentWeather')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "CopyCurrentWeatherData",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "RestSource",
+                                "httpRequestTimeout": "00:01:40",
+                                "requestInterval": "00.00:00:00.010",
+                                "requestMethod": "GET"
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ".txt"
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "path": "$['data'][0]['country_code']"
+                                        },
+                                        "sink": {
+                                            "type": "String",
+                                            "ordinal": 1
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['data'][0]['city_name']"
+                                        },
+                                        "sink": {
+                                            "type": "String",
+                                            "ordinal": 2
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['data'][0]['datetime']"
+                                        },
+                                        "sink": {
+                                            "type": "String",
+                                            "ordinal": 3
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "path": "$['data'][0]['temp']"
+                                        },
+                                        "sink": {
+                                            "type": "String",
+                                            "ordinal": 4
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceWeatherBitCurrent",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "OutputWeatherDataCurrentCSV",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    }
+                ],
+                "parameters": {
+                    "city_id": {
+                        "type": "string",
+                        "defaultValue": "@pipeline().parameters.city_id"
+                    }
+                },
+                "annotations": [],
+                "lastPublishTime": "2020-12-11T15:57:11Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceWeatherBitCurrent')]",
+                "[concat(variables('factoryId'), '/datasets/OutputWeatherDataCurrentCSV')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/pip-twitterData')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Move Data",
+                        "type": "Copy",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "DelimitedTextSource",
+                                "storeSettings": {
+                                    "type": "AzureBlobStorageReadSettings",
+                                    "recursive": true,
+                                    "enablePartitionDiscovery": false
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextReadSettings"
+                                }
+                            },
+                            "sink": {
+                                "type": "DelimitedTextSink",
+                                "storeSettings": {
+                                    "type": "AzureBlobFSWriteSettings"
+                                },
+                                "formatSettings": {
+                                    "type": "DelimitedTextWriteSettings",
+                                    "quoteAllText": true,
+                                    "fileExtension": ""
+                                }
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "typeConversion": true,
+                                "typeConversionSettings": {
+                                    "allowDataTruncation": true,
+                                    "treatBooleanAsNumber": false
+                                }
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "SourceTwitterData",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "FileName": {
+                                        "value": "@pipeline().parameters.FileName",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "OutputTwitterData",
+                                "type": "DatasetReference",
+                                "parameters": {
+                                    "FileName": {
+                                        "value": "@pipeline().parameters.FileName",
+                                        "type": "Expression"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "parameters": {
+                    "FileName": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "lastPublishTime": "2020-12-17T17:26:35Z"
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/datasets/SourceTwitterData')]",
+                "[concat(variables('factoryId'), '/datasets/OutputTwitterData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputCovidSummaryData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "data.json",
+                        "fileSystem": "covid"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "Message": {
+                            "type": "string"
+                        },
+                        "Global": {
+                            "type": "object",
+                            "properties": {
+                                "NewConfirmed": {
+                                    "type": "integer"
+                                },
+                                "TotalConfirmed": {
+                                    "type": "integer"
+                                },
+                                "NewDeaths": {
+                                    "type": "integer"
+                                },
+                                "TotalDeaths": {
+                                    "type": "integer"
+                                },
+                                "NewRecovered": {
+                                    "type": "integer"
+                                },
+                                "TotalRecovered": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "Countries": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "Country": {
+                                        "type": "string"
+                                    },
+                                    "CountryCode": {
+                                        "type": "string"
+                                    },
+                                    "Slug": {
+                                        "type": "string"
+                                    },
+                                    "NewConfirmed": {
+                                        "type": "integer"
+                                    },
+                                    "TotalConfirmed": {
+                                        "type": "integer"
+                                    },
+                                    "NewDeaths": {
+                                        "type": "integer"
+                                    },
+                                    "TotalDeaths": {
+                                        "type": "integer"
+                                    },
+                                    "NewRecovered": {
+                                        "type": "integer"
+                                    },
+                                    "TotalRecovered": {
+                                        "type": "integer"
+                                    },
+                                    "Date": {
+                                        "type": "string"
+                                    },
+                                    "Premium": {
+                                        "type": "object",
+                                        "properties": {}
+                                    }
+                                }
+                            }
+                        },
+                        "Date": {
+                            "type": "string"
+                        },
+                        "date_rep": {
+                            "type": "string"
+                        },
+                        "day": {
+                            "type": "integer"
+                        },
+                        "month": {
+                            "type": "integer"
+                        },
+                        "year": {
+                            "type": "integer"
+                        },
+                        "cases": {
+                            "type": "integer"
+                        },
+                        "deaths": {
+                            "type": "integer"
+                        },
+                        "countries_and_territories": {
+                            "type": "string"
+                        },
+                        "geo_id": {
+                            "type": "string"
+                        },
+                        "country_territory_code": {
+                            "type": "string"
+                        },
+                        "continent_exp": {
+                            "type": "string"
+                        },
+                        "load_date": {
+                            "type": "string"
+                        },
+                        "iso_country": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputAirportArrivalsCSV')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": {
+                            "value": "@{formatDateTime(utcnow(), 'yyyy-MM-dd')}-@{pipeline().parameters.icao}.csv",
+                            "type": "Expression"
+                        },
+                        "folderPath": "csv",
+                        "fileSystem": "openskyarrivals"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputMobilityJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "city": {
+                        "type": "string"
+                    }
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": {
+                            "value": "@{formatDateTime(utcnow(), 'yyyyMMddHH')}-@{dataset().city}.json",
+                            "type": "Expression"
+                        },
+                        "folderPath": "json",
+                        "fileSystem": "mobilitydata"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "RWS": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "RW": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "FIS": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "FI": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "TMC": {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "PC": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "DE": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "QD": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "LE": {
+                                                                                    "type": "number"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "CF": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "object",
+                                                                                "properties": {
+                                                                                    "TY": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "SP": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "SU": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "FF": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "JF": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "CN": {
+                                                                                        "type": "number"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "mid": {
+                                                    "type": "string"
+                                                },
+                                                "LI": {
+                                                    "type": "string"
+                                                },
+                                                "DE": {
+                                                    "type": "string"
+                                                },
+                                                "PBT": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "TY": {
+                                        "type": "string"
+                                    },
+                                    "MAP_VERSION": {
+                                        "type": "string"
+                                    },
+                                    "EBU_COUNTRY_CODE": {
+                                        "type": "string"
+                                    },
+                                    "EXTENDED_COUNTRY_CODE": {
+                                        "type": "string"
+                                    },
+                                    "TABLE_ID": {
+                                        "type": "string"
+                                    },
+                                    "UNITS": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "MAP_VERSION": {
+                            "type": "string"
+                        },
+                        "CREATED_TIMESTAMP": {
+                            "type": "string"
+                        },
+                        "VERSION": {
+                            "type": "string"
+                        },
+                        "UNITS": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceArrivalsData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "OpenSkyArrivalsLiveAPI",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "airport": {
+                            "value": "@pipeline().parameters.icao",
+                            "type": "Expression"
+                        }
+                    }
+                },
+                "annotations": [],
+                "type": "RestResource",
+                "typeProperties": {},
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/OpenSkyArrivalsLiveAPI')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceMobilityData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "Mobility_API",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "bbox": {
+                            "value": "@pipeline().parameters.bbox",
+                            "type": "Expression"
+                        }
+                    }
+                },
+                "annotations": [],
+                "type": "RestResource",
+                "typeProperties": {},
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/Mobility_API')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ListAirportsJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "airportlist.json",
+                        "fileSystem": "openskyarrivals"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "ICAO": {
+                            "type": "string"
+                        },
+                        "IATA": {
+                            "type": "string"
+                        },
+                        "Name": {
+                            "type": "string"
+                        },
+                        "Location": {
+                            "type": "string"
+                        },
+                        "Country": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ListEastJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "east.json",
+                        "fileSystem": "mobility"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "City": {
+                            "type": "string"
+                        },
+                        "BBox": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ListWestJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "west.json",
+                        "fileSystem": "mobility"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "City": {
+                            "type": "string"
+                        },
+                        "BBox": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceMobilityJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "city": {
+                        "type": "string",
+                        "defaultValue": "@pipeline().parameters.city"
+                    }
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": {
+                            "value": "@{formatDateTime(utcnow(), 'yyyyMMddHH')}-@{dataset().city}.json",
+                            "type": "Expression"
+                        },
+                        "folderPath": "json",
+                        "fileSystem": "mobilitydata"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "RWS": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "RW": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "FIS": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "FI": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "TMC": {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "PC": {
+                                                                                    "type": "integer"
+                                                                                },
+                                                                                "DE": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "QD": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "LE": {
+                                                                                    "type": "number"
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "CF": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "object",
+                                                                                "properties": {
+                                                                                    "TY": {
+                                                                                        "type": "string"
+                                                                                    },
+                                                                                    "SP": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "SU": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "FF": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "JF": {
+                                                                                        "type": "number"
+                                                                                    },
+                                                                                    "CN": {
+                                                                                        "type": "number"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "mid": {
+                                                    "type": "string"
+                                                },
+                                                "LI": {
+                                                    "type": "string"
+                                                },
+                                                "DE": {
+                                                    "type": "string"
+                                                },
+                                                "PBT": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "TY": {
+                                        "type": "string"
+                                    },
+                                    "MAP_VERSION": {
+                                        "type": "string"
+                                    },
+                                    "EBU_COUNTRY_CODE": {
+                                        "type": "string"
+                                    },
+                                    "EXTENDED_COUNTRY_CODE": {
+                                        "type": "string"
+                                    },
+                                    "TABLE_ID": {
+                                        "type": "string"
+                                    },
+                                    "UNITS": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "MAP_VERSION": {
+                            "type": "string"
+                        },
+                        "CREATED_TIMESTAMP": {
+                            "type": "string"
+                        },
+                        "VERSION": {
+                            "type": "string"
+                        },
+                        "UNITS": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ListWeatherCities')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "citiesweather.csv",
+                        "fileSystem": "weatherdata"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "firstRowAsHeader": true,
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/ListEuropeJson')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "europe.json",
+                        "fileSystem": "mobility"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "City": {
+                            "type": "string"
+                        },
+                        "BBox": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputMobilityCSV')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "folderPath": "csv",
+                        "fileSystem": "mobilitydata"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/InputCovidHistoryJSON')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "Json",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": "history.json",
+                        "fileSystem": "covid"
+                    }
+                },
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "date_rep": {
+                            "type": "string"
+                        },
+                        "day": {
+                            "type": "integer"
+                        },
+                        "month": {
+                            "type": "integer"
+                        },
+                        "year": {
+                            "type": "integer"
+                        },
+                        "cases": {
+                            "type": "integer"
+                        },
+                        "deaths": {
+                            "type": "integer"
+                        },
+                        "countries_and_territories": {
+                            "type": "string"
+                        },
+                        "geo_id": {
+                            "type": "string"
+                        },
+                        "country_territory_code": {
+                            "type": "string"
+                        },
+                        "continent_exp": {
+                            "type": "string"
+                        },
+                        "load_date": {
+                            "type": "string"
+                        },
+                        "iso_country": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceCovidSummaryData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "COVID19_Summary",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "RestResource",
+                "typeProperties": {},
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/COVID19_Summary')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceCovidHistoryData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "CovidHistoryData",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "RestResource",
+                "typeProperties": {},
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/CovidHistoryData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputWeatherDataCurrentCSV')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": {
+                            "value": "@{formatDateTime(utcnow(), 'yyyyMMdd')}-@{pipeline().parameters.city_id}.csv",
+                            "type": "Expression"
+                        },
+                        "folderPath": "csv",
+                        "fileSystem": "weatherdata"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": [
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    },
+                    {
+                        "type": "String"
+                    }
+                ]
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceWeatherBitCurrent')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "WeatherBitCurrentSource",
+                    "type": "LinkedServiceReference",
+                    "parameters": {
+                        "city_id": {
+                            "value": "@pipeline().parameters.city_id",
+                            "type": "Expression"
+                        }
+                    }
+                },
+                "annotations": [],
+                "type": "RestResource",
+                "typeProperties": {},
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/WeatherBitCurrentSource')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceTwitterData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "TwitterDataRaw",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string",
+                        "defaultValue": "none"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobStorageLocation",
+                        "fileName": {
+                            "value": "@dataset().FileName",
+                            "type": "Expression"
+                        },
+                        "container": "twitterdataraw"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/TwitterDataRaw')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/OutputTwitterData')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "DataLakeStorage",
+                    "type": "LinkedServiceReference"
+                },
+                "parameters": {
+                    "FileName": {
+                        "type": "string",
+                        "defaultValue": "none"
+                    }
+                },
+                "annotations": [],
+                "type": "DelimitedText",
+                "typeProperties": {
+                    "location": {
+                        "type": "AzureBlobFSLocation",
+                        "fileName": {
+                            "value": "@dataset().FileName",
+                            "type": "Expression"
+                        },
+                        "fileSystem": "twitterdataraw"
+                    },
+                    "columnDelimiter": ",",
+                    "escapeChar": "\\",
+                    "quoteChar": "\""
+                },
+                "schema": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/DataLakeStorage')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/MobilityTriggerWest')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-mobilityWest",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Day",
+                        "interval": 1,
+                        "startTime": "2020-12-12T14:00:00",
+                        "timeZone": "Pacific Standard Time",
+                        "schedule": {
+                            "hours": [
+                                9,
+                                11,
+                                15,
+                                17,
+                                20
+                            ]
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-mobilityWest')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/MobilityTriggerEurope')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-mobilityEurope",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Day",
+                        "interval": 1,
+                        "startTime": "2020-11-12T14:00:00",
+                        "timeZone": "Romance Standard Time",
+                        "schedule": {
+                            "hours": [
+                                9,
+                                11,
+                                15,
+                                17,
+                                20
+                            ]
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-mobilityEurope')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/CovidDataTrigger')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-copyCovid19",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    },
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-currentWeather",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Hour",
+                        "interval": 24,
+                        "startTime": "2020-11-02T16:30:00",
+                        "timeZone": "Argentina Standard Time"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-copyCovid19')]",
+                "[concat(variables('factoryId'), '/pipelines/pip-currentWeather')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/FlightDataCopyTrigger')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "description": "Download flight arrival data, must be executed every 2 days",
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-flightData",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Day",
+                        "interval": 2,
+                        "startTime": "2020-11-04T11:00:00",
+                        "timeZone": "Argentina Standard Time",
+                        "schedule": {}
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-flightData')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/MobilityTriggerEast')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-mobilityEast",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {}
+                    }
+                ],
+                "type": "ScheduleTrigger",
+                "typeProperties": {
+                    "recurrence": {
+                        "frequency": "Day",
+                        "interval": 1,
+                        "startTime": "2020-11-11T09:00:00",
+                        "timeZone": "Argentina Standard Time",
+                        "schedule": {
+                            "hours": [
+                                11,
+                                9,
+                                15,
+                                17,
+                                20
+                            ]
+                        }
+                    }
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-mobilityEast')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/TwitterDataUploaded')]",
+            "type": "Microsoft.DataFactory/factories/triggers",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "runtimeState": "Stopped",
+                "pipelines": [
+                    {
+                        "pipelineReference": {
+                            "referenceName": "pip-twitterData",
+                            "type": "PipelineReference"
+                        },
+                        "parameters": {
+                            "FileName": "[parameters('TwitterDataUploaded_properties_pip-twitterData_parameters_FileName')]"
+                        }
+                    }
+                ],
+                "type": "BlobEventsTrigger",
+                "typeProperties": {
+                    "blobPathBeginsWith": "/twitterdataraw/blobs/",
+                    "blobPathEndsWith": ".csv",
+                    "ignoreEmptyBlobs": true,
+                    "scope": "[parameters('TwitterDataUploaded_properties_typeProperties_scope')]",
+                    "events": [
+                        "Microsoft.Storage.BlobCreated"
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/pipelines/pip-twitterData')]"
+            ]
+        }
+    ]
+}

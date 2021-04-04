@@ -1,0 +1,142 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaces_saw_name": {
+            "defaultValue": "<workspace-name>",
+            "type": "String"
+        },
+        "resource_group_name": {
+            "defaultValue": "<resource-group-name>",
+            "type": "String"
+        },
+        "data_lake_base_storage_name": {
+            "defaultValue": "<synapse-store-name>",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Synapse/workspaces",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[parameters('workspaces_saw_name')]",
+            "location": "westus2",
+            "identity": {
+                "principalId": null,
+                "tenantId": null,
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "connectivityEndpoints": {
+                    "web": "[concat('https://web.azuresynapse.net?workspace=%2fsubscriptions%2fd1017e63-147c-4987-892b-93cca3c7b453%2fresourceGroups%2', parameters('resource_group_name'), '%2fproviders%2fMicrosoft.Synapse%2fworkspaces%2f', parameters('workspaces_saw_name'))]",
+                    "dev": "[concat('https://', parameters('workspaces_saw_name'), '.dev.azuresynapse.net')]",
+                    "sqlOnDemand": "[concat(parameters('workspaces_saw_name'), '-ondemand.sql.azuresynapse.net')]",
+                    "sql": "[concat(parameters('workspaces_saw_name'), '.sql.azuresynapse.net')]"
+                },
+                "managedResourceGroupName": "synapseworkspace-managedrg-c9426441-ddbe-44e7-9171-f6f0ab329594",
+                "defaultDataLakeStorage": {
+                    "accountUrl": "[concat('https://', parameters('workspaces_saw_name'), '.dfs.core.windows.net')]",
+                    "filesystem": "[parameters('data_lake_base_storage_name')]"
+                },
+                "sqlAdministratorLogin": "sqladminuser",
+                "privateEndpointConnections": [],
+                "encryption": {}
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/auditingSettings",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('workspaces_saw_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_saw_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/extendedAuditingSettings",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('workspaces_saw_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_saw_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/firewallRules",
+            "apiVersion": "2019-06-01-preview",
+            "name": "<workspace-name>/AllowAllWindowsAzureIps",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', '<workspace-name>')]"
+            ],
+            "properties": {
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/integrationruntimes",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('workspaces_saw_name'), '/AutoResolveIntegrationRuntime')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_saw_name'))]"
+            ],
+            "properties": {
+                "type": "Managed",
+                "typeProperties": {
+                    "computeProperties": {
+                        "location": "AutoResolve"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/securityAlertPolicies",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('workspaces_saw_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_saw_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/vulnerabilityAssessments",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(parameters('workspaces_saw_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Synapse/workspaces', parameters('workspaces_saw_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": true,
+                    "emailSubscriptionAdmins": true
+                },
+                "storageContainerPath": "[concat('https://stquebecdatalakedev.dfs.core.windows.net/', parameters('data_lake_base_storage_name'))]"
+            }
+        }
+    ]
+}
