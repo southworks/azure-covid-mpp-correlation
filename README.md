@@ -900,13 +900,3 @@ Because of an issue with the Azure Runtime, the function needed to gather Twitte
 Contributions are welcomed!
 
 - [Contribution guidelines](CONTRIBUTING.md)
-- [Code of conduct guidelines](CODE_OF_CONDUCT.md)
-
-<p>
-<br/>
-<br/>
-</p>
-
-## License
-
-This repo is covered under [The MIT License](LICENSE).
