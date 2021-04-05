@@ -1,5 +1,7 @@
 <img src="./images/SOUTHWORKS_Logo.png" width="200" alt="Southworks">
 
+You can find the complete [article](https://medium.com/southworks/covid-19-data-correlation-among-cases-tweets-mobility-flights-weather-with-azure-c10592bf76f7) describing the scenario tackled with this reference implementation.
+
 ## Overview
 
 This sample project demonstrates how and where to use some data engineering Azure tools:
